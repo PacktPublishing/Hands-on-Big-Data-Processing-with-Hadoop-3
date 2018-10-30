@@ -1,0 +1,529 @@
+﻿
+pig -x local
+
+ou can exit the Grunt shell using ctrl + d.
+
+pig -x mapreduce
+pig
+
+
+*************************************
+
+Save this file as student_details.txt
+
+
+001,Rajiv,Reddy,21,9848022337,Hyderabad,89
+002,siddarth,Battacharya,22,9848022338,Kolkata,78
+003,Rajesh,Khanna,22,9848022339,Delhi,90
+004,Preethi,Agarwal,21,9848022330,Pune,93
+005,Trupthi,Mohanthy,23,9848022336,Bhuwaneshwar,75
+006,Archana,Mishra,23,9848022335,Chennai,87
+007,Komal,Nayak,24,9848022334,trivendram,83
+008,Bharathi,Nambiayar,24,9848022333,Chennai,72
+
+
+student_details = LOAD 'hdfs://localhost:9000/inputwords/student_details.txt' USING PigStorage(',')as (id:int, firstname:chararray, lastname:chararray, age:int, phone:chararray, city:chararray, gpa:int);
+
+dump student_details;
+
+student_group_all = Group student_details All;
+
+Dump student_group_all;
+
+student_gpa_avg = foreach student_group_all Generate (student_details.firstname, student_details.gpa), AVG(student_details.gpa);
+
+Dump student_gpa_avg;
+
+student_gpa_max = foreach student_group_all Generate (student_details.firstname, student_details.gpa), MAX(student_details.gpa)
+
+Dump student_gpa_max;
+
+
+************************************
+
+
+***********************************
+
+Craete a file called A.txt on terminal
+
+1,3,5,7,9
+0,9,7,3,1
+1,4.6,7,7
+Craete a file called B.txt on terminal
+
+1,4,6,8,11
+1,5,6,4,56
+0,5,3,3,2
+
+******************
+---on terminal node:
+
+hadoop fs -ls /pig
+
+hadoop fs -ls /pig/pig_demo
+
+---Go to the folder and check if the folder exists:
+
+---need to put the two txt files in pig_demo folder
+
+--- go to another terminal and start pig in local mode
+
+---once we have pig started we need to assign the txt file 
+
+e.g. 
+
+
+*****In local mode it will pickup the data from the local system ****
+
+grunt > 		aa = LOAD '/home/hadoop/Desktop/A.txt' using PigStorage(',');
+			b = LOAD '/home/spark/B.txt' using PigStorage(',');
+			c = LOAD '/home/spark/C.txt' using PigStorage(',');
+a = LOAD 'hdfs://localhost:9000/pig/A.txt';
+b = LOAD 'hdfs://localhost:9000/pig/B.txt';
+
+			dump a;
+			dump b;
+ = 
+
+********************In Map Reduce mode***************************
+
+a = LOAD 'hdfs://localhost:9000/pig/A.txt' using PigStorage(',') as (a1:int , a2:int , a3:int , a4:int , a5:int);
+b = LOAD 'hdfs://localhost:9000/pig/B.txt' using PigStorage(',') as (b1:int , b2:int , b3:int , b4:int , b5:int); 
+
+
+describe a;
+
+describe b;
+
+c = UNION a, b;
+
+dump c;
+
+SPLIT c INTO d IF $0 == 1, e IF $0 == 0;
+
+dump d;
+
+dump e;
+
+
+f = FILTER c BY $1 > 3;
+
+dump f;
+
+illustrate f;
+
+
+g = GROUP c BY $2;
+
+dump g;
+
+k = FOREACH c GENERATE a2, a3,a2*a3
+
+dump k;
+
+
+s1 = FOREACH a GENERATE *;
+
+dump s1;
+
+s2 = FOREACH a GENERATE a1,a3;
+
+STORE s2 into 'hdfs://localhost:9000/pig/storage' ;
+
+dump s2;
+
+
+************************* WordCount Program ****************
+
+---- on terminal create a simple word file or if you have any word file 
+
+hadoop fs -put war_and_peace.txt /pig/pig_demo/
+
+gedit word_count.pig
+
+A = load 'hdfs://localhost:9000/input/war_and_peace.txt';
+B = foreach A generate flatten(TOKENIZE((chararray)$0)) as word;
+C = filter B by word matches '\\w+';	
+D = group C by word;
+E = foreach D generate COUNT(C), group;
+store E into 'hdfs://localhost:9000/ouput_test;
+
+
+
+A1 = load 'hdfs://cloudlabns/user/er_sudhanshusaxena_yahoo/war_and_peace.txt';
+B1 = foreach A1 generate flatten(TOKENIZE((chararray)$0)) as word;
+C1 = filter B1 by word matches '\\w+';
+D1 = group C1 by word;
+E1 = foreach D1 generate COUNT(C1), group;
+store E1 into 'hdfs://cloudlabns/user/er_sudhanshusaxena_yahoo/wordcount_updated_1';
+
+gedit pig_scripting.pig { 
+
+A = load 'hdfs://localhost:9000/pig/war_and_peace.txt';
+B = foreach A generate flatten(TOKENIZE((chararray)$0)) as word;
+C = filter B by word matches '\\w+';
+D = group C by word;
+E = foreach D generate COUNT(C), group;
+store E into 'hdfs://localhost:9000/pigdemo/pig_training';
+
+
+}
+
+------ on terminal check 
+
+pig pig_scripting.pig
+
+------ on terminal check 
+
+hadoop fs -ls /pig/pig_demo/pig_demo_scrpt_op
+
+
+
+*******************dealing with different data types********************
+data.txt
+
+(www.ccc.com,www.hjk.com)
+(www.ddd.com,www.xyz.org)
+(www.aaa.com,www.cvn.org)
+(www.www.com,www.kpt.net)
+(www.www.com,www.xyz.org)
+(www.ddd.com,www.xyz.org)
+
+data = LOAD '/local/data.txt' AS (url:chararray,outlink:chararray);
+
+DUMP data;
+(www.ccc.com,www.hjk.com)
+(www.ddd.com,www.xyz.org)
+(www.aaa.com,www.cvn.org)
+(www.www.com,www.kpt.net)
+(www.www.com,www.xyz.org)
+(www.ddd.com,www.xyz.org)
+
+B = GROUP A BY url;
+
+DUMP B;
+(www.aaa.com,{(www.aaa.com,www.cvn.org)})
+(www.ccc.com,{(www.ccc.com,www.hjk.com)})
+(www.ddd.com,{(www.ddd.com,www.xyz.org),(www.ddd.com,www.xyz.org)})
+(www.www.com,{(www.www.com,www.kpt.net),(www.www.com,www.xyz.org)})
+
+***********************Changing the delimiter type********
+A = LOAD 'data' AS (a1:int,a2:int,a3:int);
+
+DUMP A;
+1,2,3
+4,2,1
+8*3*4
+4*3*3
+7*2*5
+8*4*3
+
+
+STORE A INTO '/local/myoutput' USING PigStorage ('*');
+
+CAT myoutput;
+1*2*3
+4*2*1
+8*3*4
+4*3*3
+7*2*5
+8*4*3
+***************************CONCAT function**************************
+
+A = LOAD 'data' AS (a1:int,a2:int,a3:int);
+
+DUMP A;
+(1,2,3)
+(4,2,1)
+(8,3,4)
+(4,3,3)
+(7,2,5)
+(8,4,3)
+
+B = FOREACH A GENERATE CONCAT('a:',(chararray)f1), CONCAT('b:',(chararray)f2), CONCAT('c:',(chararray)f3);
+
+DUMP B;
+(a:1,b:2,c:3)
+(a:4,b:2,c:1)
+(a:8,b:3,c:4)
+(a:4,b:3,c:3)
+(a:7,b:2,c:5)
+(a:8,b:4,c:3)
+
+STORE B INTO 'myoutput' using PigStorage(',');
+
+CAT myoutput;
+a:1,b:2,c:3
+a:4,b:2,c:1
+a:8,b:3,c:4
+a:4,b:3,c:3
+a:7,b:2,c:5
+a:8,b:4,c:3
+
+******************Word count Program***********************************
+
+lines = LOAD '/pig/pig_demo/HDFS_File.txt' AS (line:chararray);
+words = FOREACH lines GENERATE FLATTEN(TOKENIZE(line)) as word;
+grouped = GROUP words BY word;
+wordcount = FOREACH grouped GENERATE group, COUNT(words);
+DUMP wordcount;
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+The above pig script, first splits each line into words using the TOKENIZE operator. 
+The tokenize function creates a bag of words. Using the FLATTEN function, 
+the bag is converted into a tuple. In the third statement, 
+the words are grouped together so that the count can be computed which is done in fourth statement.
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+*************************************
+customers.txt
+ 
+1,Ramesh,32,Ahmedabad,2000.00
+2,Khilan,25,Delhi,1500.00
+3,kaushik,23,Kota,2000.00
+4,Chaitali,25,Mumbai,6500.00
+5,Hardik,27,Bhopal,8500.00
+6,Komal,22,MP,4500.00
+7,Muffy,24,Indore,10000.00
+
+
+*********************
+
+orders_Pig.txt
+
+102,2009-10-08 00:00:00,3,3000
+100,2009-10-08 00:00:00,3,1500
+101,2009-11-20 00:00:00,2,1560
+103,2008-05-20 00:00:00,4,2060
+
+
+customers = LOAD 'hdfs://localhost:9000/pig/customers.txt' USING PigStorage(',') as (id:int, name:chararray, age:int, address:chararray, salary:int);
+
+orders = LOAD 'hdfs://localhost:9000/pig/orders_Pig.txt' USING PigStorage(',') as (oid:int, date:chararray, customer_id:int, amount:int);
+
+
+
+*****************************************************Self Join********************
+
+customers1 = LOAD 'hdfs://localhost:9000/pig/customers.txt' USING PigStorage(',')as (id:int, name:chararray, age:int, address:chararray, salary:int);
+customers2 = LOAD 'hdfs://localhost:9000/pig/customers.txt' USING PigStorage(',')as (id:int, name:chararray, age:int, address:chararray, salary:int);
+
+
+
+************Given below is the syntax of performing self-join operation using the JOIN operator*************
+
+Syntax:    	Relation3_name = JOIN Relation1_name BY key, Relation2_name BY key ;
+
+
+grunt> 		customers3 = JOIN customers1 BY id, customers2 BY id;
+
+		Dump customers3;
+
+
+Output It will produce the following output, displaying the contents of the relation customers.
+
+
+(1,Ramesh,32,Ahmedabad,2000,1,Ramesh,32,Ahmedabad,2000)
+(2,Khilan,25,Delhi,1500,2,Khilan,25,Delhi,1500)
+(3,kaushik,23,Kota,2000,3,kaushik,23,Kota,2000)
+(4,Chaitali,25,Mumbai,6500,4,Chaitali,25,Mumbai,6500)
+(5,Hardik,27,Bhopal,8500,5,Hardik,27,Bhopal,8500)
+(6,Komal,22,MP,4500,6,Komal,22,MP,4500)
+(7,Muffy,24,Indore,10000,7,Muffy,24,Indore,10000)
+
+
+***********************************************************
+
+************Inner Join************
+Inner Join : Inner Join is used quite frequently; it is also referred to as equijoin. An inner join returns rows when there is a match in both tables.
+
+It creates a new relation by combining column values of two relations (say A and B) based upon the join-predicate. The query compares each row of A with each row of B to find all pairs of rows which satisfy the join-predicate. When the join-predicate is satisfied, the column values for each matched pair of rows of A and B are combined into a result row.
+
+*******************************************
+
+Syntax : Here is the syntax of performing inner join operation using the JOIN operator.
+
+grunt> result = JOIN relation1 BY columnname, relation2 BY columnname;
+
+**************************************************************************
+
+Grunt >			coustomer_orders = JOIN customers BY id, orders BY customer_id;
+
+			Dump coustomer_orders;
+
+****************output****************
+
+(2,Khilan,25,Delhi,1500,101,2009-11-20 00:00:00,2,1560) 
+(3,kaushik,23,Kota,2000,100,2009-10-08 00:00:00,3,1500) 
+(3,kaushik,23,Kota,2000,102,2009-10-08 00:00:00,3,3000) 
+(4,Chaitali,25,Mumbai,6500,103,2008-05-20 00:00:00,4,2060)
+
+-------------------------------------------------------------
+
+*************************************************************
+
+Outer Join
+Unlike inner join, outer join returns all the rows from at least one of the relations. An outer join operation is carried out in three ways 
+
+--Left outer join
+--Right outer join
+--Full outer join
+
+Left Outer Join The left outer Join operation returns all rows from the left table, even if there are no matches in the right relation.
+
+Relation3_name = JOIN Relation1_name BY id LEFT OUTER, Relation2_name BY customer_id;
+
+Example
+Let us perform left outer join operation on the two relations customers and orders as shown below.
+
+grunt> outer_left = JOIN customers BY id LEFT OUTER, orders BY customer_id;
+	
+
+outer_left = JOIN customers BY id LEFT OUTER, orders BY customer_id;
+
+Verification Verify the relation outer_left using the DUMP operator as shown below.
+
+Dump outer_left;
+
+Output It will produce the following output, displaying the contents of the relation outer_left.
+
+
+(1,Ramesh,32,Ahmedabad,2000,,,,)
+(2,Khilan,25,Delhi,1500,101,2009-11-20 00:00:00,2,1560)
+(3,kaushik,23,Kota,2000,100,2009-10-08 00:00:00,3,1500)
+(3,kaushik,23,Kota,2000,102,2009-10-08 00:00:00,3,3000) 
+(4,Chaitali,25,Mumbai,6500,103,2008-05-20 00:00:00,4,2060) 
+(5,Hardik,27,Bhopal,8500,,,,) 
+(6,Komal,22,MP,4500,,,,) 
+(7,Muffy,24,Indore,10000,,,,)
+
+
+Right Outer Join The right outer join operation returns all rows from the right table, even if there are no matches in the left table.
+
+Syntax
+Given below is the syntax of performing right outer join operation using the JOIN operator.
+grunt> outer_right = JOIN customers BY id RIGHT, orders BY customer_id;
+
+Example
+Let us perform right outer join operation on the two relations customers and orders as shown below.
+grunt> outer_right = JOIN customers BY id RIGHT, orders BY customer_id;
+
+
+Verification Verify the relation outer_right using the DUMP operator as shown below.
+grunt> Dump outer_right;
+
+Output It will produce the following output, displaying the contents of the relation outer_right.
+
+(2,Khilan,25,Delhi,1500,101,2009-11-20 00:00:00,2,1560)
+(3,kaushik,23,Kota,2000,100,2009-10-08 00:00:00,3,1500)
+(3,kaushik,23,Kota,2000,102,2009-10-08 00:00:00,3,3000)
+(4,Chaitali,25,Mumbai,6500,103,2008-05-20 00:00:00,4,2060)
+
+
+Full Outer Join The full outer join operation returns rows when there is a match in one of the relations.
+Syntax
+Given below is the syntax of performing full outer join using the JOIN operator.
+grunt> outer_full = JOIN customers BY id FULL OUTER, orders BY customer_id;
+Example
+Let us perform full outer join operation on the two relations customers and orders as shown below.
+
+grunt> outer_full = JOIN customers BY id FULL OUTER, orders BY customer_id;
+
+Verification Verify the relation outer_full using the DUMP operator as shown below.
+
+grunt> Dump outer_full;
+
+Output It will produce the following output, displaying the contents of the relation outer_full.
+
+(1,Ramesh,32,Ahmedabad,2000,,,,)
+(2,Khilan,25,Delhi,1500,101,2009-11-20 00:00:00,2,1560)
+(3,kaushik,23,Kota,2000,100,2009-10-08 00:00:00,3,1500)
+(3,kaushik,23,Kota,2000,102,2009-10-08 00:00:00,3,3000)
+(4,Chaitali,25,Mumbai,6500,103,2008-05-20 00:00:00,4,2060)
+(5,Hardik,27,Bhopal,8500,,,,) (6,Komal,22,MP,4500,,,,)
+(7,Muffy,24,Indore,10000,,,,)
+
+
+************************************************************************************************
+
+The SPLIT operator is used to split a relation into two or more relations.
+
+SPLIT Relation1_name INTO Relation2_name IF (condition1), Relation2_name (condition2),
+
+student_details = LOAD 'hdfs://localhost:9000/pig/student_details.txt' USING PigStorage(',') as (id:int, firstname:chararray, lastname:chararray, age:int, phone:chararray, city:chararray); 
+
+SPLIT student_details into student_details1 if age<23, student_details2 if (22<age and age>25);
+
+grunt> Dump student_details1;  
+
+grunt> Dump student_details2; 
+
+grunt> Dump student_details1; 
+(1,Rajiv,Reddy,21,9848022337,Hyderabad) 
+(2,siddarth,Battacharya,22,9848022338,Kolkata)
+(3,Rajesh,Khanna,22,9848022339,Delhi) 
+(4,Preethi,Agarwal,21,9848022330,Pune)
+  
+grunt> Dump student_details2; 
+(5,Trupthi,Mohanthy,23,9848022336,Bhuwaneshwar) 
+(6,Archana,Mishra,23,9848022335,Chennai) 
+(7,Komal,Nayak,24,9848022334,trivendram) 
+(8,Bharathi,Nambiayar,24,9848022333,Chennai)
+
+******************************************************************************************
+
+
+The FILTER operator is used to select the required tuples from a relation based on a condition.
+
+grunt> Relation2_name = FILTER Relation1_name BY (condition);
+
+
+grunt> student_details = LOAD 'hdfs://localhost:9000/pig_data/student_details.txt' USING PigStorage(',') as (id:int, firstname:chararray, lastname:chararray, age:int, phone:chararray, city:chararray);
+
+
+filter_data = FILTER student_details BY city == 'Chennai';
+
+********Output******************
+(6,Archana,Mishra,23,9848022335,Chennai)
+(8,Bharathi,Nambiayar,24,9848022333,Chennai)
+
+
+*******************************************************************************************************
+save data as student_details.txt
+
+001,Rajiv,Reddy,9848022337,Hyderabad
+002,siddarth,Battacharya,9848022338,Kolkata 
+002,siddarth,Battacharya,9848022338,Kolkata 
+003,Rajesh,Khanna,9848022339,Delhi 
+003,Rajesh,Khanna,9848022339,Delhi 
+004,Preethi,Agarwal,9848022330,Pune 
+005,Trupthi,Mohanthy,9848022336,Bhuwaneshwar
+006,Archana,Mishra,9848022335,Chennai 
+006,Archana,Mishra,9848022335,Chennai
+
+
+The DISTINCT operator is used to remove redundant (duplicate) tuples from a relation.
+
+grunt> Relation_name2 = DISTINCT Relatin_name1;
+
+
+grunt> student_details = LOAD 'hdfs://localhost:9000/pig/student_details.txt' USING PigStorage(',') as (id:int, firstname:chararray, lastname:chararray, phone:chararray, city:chararray);
+
+grunt> distinct_data = DISTINCT student_details;
+
+********Output******************
+
+(1,Rajiv,Reddy,9848022337,Hyderabad)
+(2,siddarth,Battacharya,9848022338,Kolkata) 
+(3,Rajesh,Khanna,9848022339,Delhi) 
+(4,Preethi,Agarwal,9848022330,Pune) 
+(5,Trupthi,Mohanthy,9848022336,Bhuwaneshwar)
+(6,Archana,Mishra,9848022335,Chennai)
+
+grunt> Dump distinct_data;
+
+
+
+
+

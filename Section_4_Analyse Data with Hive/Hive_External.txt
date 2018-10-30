@@ -1,0 +1,46 @@
+CREATE DATABASE IF NOT EXISTS cards;
+
+CREATE TABLE deck (
+COLOR string,
+SUIT string,
+PIP string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|'
+STORED AS TEXTFILE;
+
+
+CREATE TABLE deck_second (
+COLOR string,
+SUIT string,
+PIP string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|'
+STORED AS TEXTFILE;
+
+
+LOAD DATA LOCAL INPATH '/home/spark/Desktop/deckofcards.txt' INTO TABLE deck_of_cards;
+
+hdfs dfs -ls /user/hive/warehouse/cards.db;
+
+select count(*) from deck_of_cards;
+
+
+*************************************************************************
+
+CREATE external TABLE orders_external(
+COLOR string,
+SUIT string,
+PIP string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|'
+STORED AS TEXTFILE;
+
+
+
+LOAD DATA INPATH 'hdfs://localhost:9000/orders.csv' INTO TABLE orders_external;
+
+LOAD DATA LOCAL INPATH 'deckofcards.txt' INTO TABLE deck_external_2;
+
+
+hdfs dfs -ls /user/hive/warehouse/cards.db;
+
+select count(*) from orders_external;
+
+drop table deck_of_cards_external;

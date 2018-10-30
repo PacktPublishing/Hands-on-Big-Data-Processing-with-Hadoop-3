@@ -1,0 +1,7 @@
+insert into employee values (101,'John','IT',12345.67);
+insert into employee values (102,'Jacob','FI',2345.34);
+insert into employee values (201,'David','CO',10500.30);
+insert into employee values (301,'Aaron','FI',4545.22);
+insert into employee values (401,'Campbell','IT',111134.88);
+insert into employee values (406,'William','IT',12345.67);
+insert into employee values (407,'Donald','CO',4522.38);

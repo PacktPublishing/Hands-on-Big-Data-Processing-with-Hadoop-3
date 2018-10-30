@@ -1,0 +1,128 @@
+﻿# A Simple Sqoop Import
+
+# Pull all the rows from a table in MySQL into HDFS
+
+1. Connect to MySQL server using following command (type password = root when prompted):
+mysql -u root -p 
+
+2. Create a database sqoopdemo
+
+create database sqooptest;
+
+3. Use sqooptest;
+use sqooptest;
+
+4. Create a table called employee with 4 attributes
+
+create table employee (id integer, name varchar(10), dept varchar(2), salary float);
+
+5. Insert some rows in the table
+
+-----insert into employee values (101,'John','IT',12345.67, LOAD_FILE(‘/home/ubuntu/bk.pdf’))-----;
+
+insert into employee values (101,'John','IT',12345.67);
+insert into employee values (102,'Jacob','FI',2345.34);
+insert into employee values (201,'David','CO',10500.30);
+insert into employee values (301,'Aaron','FI',4545.22);
+insert into employee values (401,'Campbell','IT',111134.88);
+insert into employee values (406,'William','IT',12345.67);
+insert into employee values (407,'Donald','CO',4522.38);
+
+6. Check all rows inserted in table using
+
+select * from employee;
+
+7. Exit MySQL by pressing CTRL-D
+
+8. Run following sqoop command to import thes rows in HDFS in '/employee' directory
+
+###sqoop import --connect jdbc:mysql://localhost/sqoop  --driver com.mysql.jdbc.Driver --u root --password root --table employee --target-dir /emp --m 1
+
+
+
+sqoop import --connect jdbc:mysql://localhost/test --username root --password root --table employee --m 1 --target-dir /packt
+
+9. After Sqoop command finishes go to HDFS /employee directory and check the output. All rows from table should be in /employee/part-m-00000 file
+
+# A Simple Sqoop Export
+# Pull the same records from HDFS into MySQL
+
+1. Connect to MySQL server using following command (type password = root when prompted):
+
+mysql -u root -p
+
+2. Delete all the rows from employee table
+
+delete from employee;
+
+3. Verify that there are no rows in employee table with 'select * from employee'
+
+4. Press CTRL-D to exit MySQL
+
+5. Run following sqoop command to export data from HDFS in '/employee' directory into MySQL
+
+sqoop export --driver com.mysql.jdbc.Driver --connect jdbc:mysql://localhost/test --username root --password root --table employee --export-dir /packt
+
+6. After Sqoop command finishes go to MySQL and check that all rows have been imported back in the table using 'select * from employee;'
+
+
+
+
+________________________________________
+Incremental Load
+________________________________________
+
+login to mysql 
+
+mysql -u root -p
+
+insert into employee values (408,'sudhanshu','IT',99999);
+
+verify if the entry has been added 
+
+select * from employee
+
+add the entry on the terminal:
+
+
+sqoop import --driver com.mysql.jdbc.Driver 
+--connect jdbc:mysql://localhost/sqoop --username root 
+--password root --table employee --append 
+--target-dir /imspro --where "id > 407" --m 1
+
+add this to my SQL
+
+insert into employee values (409,'Ayesha','IT',8888);
+
+insert into employee values (410,'XYZ','IT',8899);
+
+insert into employee values (411,'XYZzzz','TT',8900);
+
+sqoop import --driver com.mysql.jdbc.Driver 
+--connect jdbc:mysql://localhost/sqoop 
+--username root --password root --table employee 
+--append --target-dir /imspro --check-column id 
+--incremental append --last-value 408 --m 1
+
+
+________________________________________
+add the data in Hive
+________________________________________
+
+sqoop import --driver com.mysql.jdbc.Driver --connect jdbc:mysql://localhost/sqoopdemo --username root --password root --table employee --hive-import  --hive-home /user/hive/warehouse --hive-table sqoop --m 1
+
+
+sqoop import --driver com.mysql.jdbc.Driver --connect jdbc:mysql://localhost/sqooptest --username root --password root --table employee --hive-home /user/hive/warehouse --hive-import --hive-table employee --m 1
+
+
+
+sqoop import --driver com.mysql.jdbc.Driver --connect jdbc:mysql://localhost/sqooptest --username root --password root --table employee --hive-home /user/hive/warehouse/sudhanshu.db --hive-import --hive-table employee --m 1
+
+
+
+
+
+
+
+For Labusers,please use this command to connect mysql : mysql -h 172.31.54.174 -u labuser -p simplilearn 
+

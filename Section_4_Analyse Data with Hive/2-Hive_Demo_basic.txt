@@ -1,0 +1,141 @@
+show databases;
+
+********* How to check if the name node is able to connect with the HIVE*********
+
+Check the Name node URL
+
+Launch Hive command
+
+Lets c if Hive can talk to HDFS
+
+set fs.defaultFS;
+
+dfs -ls /user/hive/warehouse;
+
+*******************************
+
+
+
+
+****check databses****
+
+show databases;
+
+SELECT current_database();
+*****************Create databses and run some queries************ 
+
+
+CREATE DATABASE cards;
+
+use cards;
+
+CREATE TABLE deck_of_cards (
+COLOR string,
+SUIT string,
+PIP string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
+STORED AS TEXTFILE;
+
+show tables;
+
+
+
+
+--copy file deckofcards.txt to ~/home/sudhanshu/Desktop/hive
+
+LOAD DATA LOCAL INPATH '/home/hadoop/Desktop/deckofcards.txt' INTO TABLE deck_of_cards;
+
+dfs -ls /user/hive/warehouse/cards.db;
+
+select count(*) from deck_of_cards;
+
+
+*******************30 mins***********************
+
+# Create orders_stage under hive database customers
+
+CREATE DATABASE IF NOT EXISTS customers;
+use retails;
+
+CREATE TABLE orders (
+order_id int,
+order_date string,
+order_customer_id int,
+order_status string
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+load data local inpath '/home/hadoop/Desktop/orders.csv' overwrite into table orders;
+
+------------------------------------------------------------
+
+
+***SELECT 
+***FROM
+***WHERE
+***GROUP BY( HAVING)
+***ORDER BY
+*******************************
+
+-*****Using all HiveQL/SQL clauses****** 
+
+-- Get number of orders by order_status for a given date '2013-12-14'
+
+SELECT order_status, count(1) FROM orders
+WHERE order_date = '2013-11-26 00:00:00.0'
+GROUP BY order_status
+ORDER BY order_status;
+
+-- Get number of completed orders for each date before '2013-12-14 00:00:00.0'
+
+SELECT order_date, count(1) FROM orders
+WHERE order_date <= '2013-12-14 00:00:00.0' AND order_status = 'COMPLETE'
+GROUP BY order_date
+ORDER BY order_date;
+
+
+SELECT order_date, count(1) FROM order_stage
+WHERE order_date = '2013-12-14 00:00:00.0' AND orders_status = 'COMPLETE'
+GROUP BY order_date
+ORDER BY order_date;
+
+-- Get number of pending, review and onhold order for each date for the month of 2013 December
+
+SELECT order_date, count(1) FROM orders_stage
+WHERE order_date LIKE '2013-12%' AND order_status IN ('PENDING', 'PENDING_PAYMENT', 'PAYMENT_REVIEW', 'ON_HOLD')
+GROUP BY order_date
+ORDER BY order_date;  ######-- order_date LIKE '2013-12%' AND (order_status = 'PENDING' or order_status = 'PENDING_PAYMENT'....)
+
+-- Get number of pending, review and onhold order for each date for the month of 2013 December
+SELECT order_date, count(1) FROM orders_stage
+WHERE order_date LIKE '2013-12%' AND (order_status = 'PENDING' or order_status = 'PENDING_PAYMENT')
+GROUP BY order_date
+ORDER BY order_date;
+
+--Incorrect query
+SELECT order_date, count(1) FROM orders
+WHERE order_date BETWEEN '2013-12-01 00:00:00.0' AND '2013-12-31 00:00:00.0'
+AND order_status LIKE 'PENDING%' OR order_status IN ('PAYMENT_REVIEW', 'ON_HOLD')
+GROUP BY order_date
+ORDER BY order_date;
+
+--Correct alternative query
+SELECT order_date, count(1) FROM orders_stage
+WHERE order_date BETWEEN '2013-12-01 00:00:00.0' AND '2013-12-31 00:00:00.0'
+AND (order_status LIKE 'PENDING%' OR order_status IN ('PAYMENT_REVIEW', 'ON_HOLD'))
+GROUP BY order_date
+ORDER BY order_date;
+
+
+
+Get number of all the pending and pending payment, for each date for all of the month of 2013.
+
+Get number of all the pending and pending payment, is greater the 20 for each date for all of the month of 2013.
+
+Get number of all the SUSPECTED_FRAUD, is lesser then 20 for each date for all of the month of 2013.
+
+
+
+
+

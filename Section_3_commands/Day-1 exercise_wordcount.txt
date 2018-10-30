@@ -1,0 +1,19 @@
+Create a folder in HDFS
+
+hdfs dfs -mkdir /inputwords 
+
+Check the content 
+
+hdfs dfs -ls /inputwords 
+
+upload the file war_and_peace.txt
+
+hdfs dfs -put "war_and_peace.txt" /inputwords
+
+
+
+Run word count example:
+$ bin/hdfs dfs -mkdir /inputwords
+$ bin/hdfs dfs -put <data-file> /inputwords
+$ bin/yarn jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.5.0-cdh5.3.2.jar wordcount /inputwords /outputwords
+$ bin/hdfs dfs -cat /outputwords/*

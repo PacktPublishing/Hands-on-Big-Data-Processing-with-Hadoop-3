@@ -1,0 +1,30 @@
+bashrc File changes
+
+export FLUME_HOME=/usr/local/flume 
+export PATH=$PATH:$FLUME_HOME/bin/
+export CLASSPATH=$CLASSPATH:/FLUME_HOME/lib/* 
+
+cd $FLUME_HOME
+cd conf
+ls
+
+
+sudo cp flume-conf.properties.template flume-conf.properties
+sudo cp flume-env.sh.template flume-env.sh
+
+ls
+
+sudo gedit flume-env.sh
+
+export JAVA_HOME=/usr
+FLUME_CLASSPATH="/usr/local/flume/bin/flume-sources-1.0-SNAPSHOT.jar"
+
+http://twitter4j.org/en/index.html
+
+login to apps.twitter.com
+copy all secret tokens to twitter.conf.txt at the right place
+save this file as twitter.conf and place in  /usr/local/flume/conf/
+go back to ubuntu home and run this comme
+
+
+flume-ng agent -n TwitterAgent -c conf -f /usr/local/flume/conf/twitter.conf
